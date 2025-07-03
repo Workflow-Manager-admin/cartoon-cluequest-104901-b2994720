@@ -273,30 +273,43 @@ body {
 }
 
 /* ---------- Modals ---------- */
+/* --------- Enhanced Modal, Animations, Feedback Regions --------- */
 .noir-modal-bg {
-  background: rgba(21,22,29,0.91);
+  background: rgba(21,22,29,0.92);
   position: fixed;
   z-index: 1999;
   width: 100vw; height: 100vh;
   left: 0; top: 0;
   display: flex; align-items: center; justify-content: center;
-  animation: noirFadeIn 0.32s cubic-bezier(.77,-0.11,.65,1.09) 1;
+  /* Glossier glass blur + smooth fade-in upward */
+  backdrop-filter: blur(9px) brightness(1.05);
+  animation: noirModalRaisedIn 0.38s cubic-bezier(.69,-0.11,.67,1.21) 1;
 }
-@keyframes noirFadeIn {
-  0% { opacity: 0; filter: blur(1.5px);}
-  100% { opacity: 1; filter: none;}
+@keyframes noirModalRaisedIn {
+  0% { opacity: 0; transform: translateY(38px) scale(0.98); filter: blur(3.5px);}
+  70% { opacity: .92; transform: translateY(-8px) scale(1.01);}
+  100% { opacity: 1; transform: none; filter: none;}
 }
 .noir-modal {
   background: var(--surface-lift);
   border-radius: var(--radius-large);
   min-width: 312px;
   max-width: 454px;
-  box-shadow: var(--shadow-modal);
+  box-shadow: 0 10px 75px #10182460, 0 1.5px 11px #1116;
   border: var(--border-strong);
   color: var(--text-main);
   font-family: var(--font-ui);
   padding: 37px 28px 26px 28px;
   position: relative;
+  transition: box-shadow 0.26s cubic-bezier(.77,-0.09,.66,1.11), background 0.23s;
+  animation: noirPopPanel .46s cubic-bezier(.85,-0.06,.58,1.08);
+  will-change: box-shadow, transform;
+  outline: none;
+}
+@keyframes noirPopPanel {
+  0% { opacity:0; filter:blur(6px) brightness(0.88); transform:scale(0.88);}
+  50% { filter:none; opacity:0.94; }
+  100% { opacity:1; filter:none; transform:none;}
 }
 .noir-modal-titlebar {
   font-weight: 800;
@@ -304,12 +317,71 @@ body {
   font-size: var(--title-3);
   color: var(--accent);
   margin-bottom: 16px;
+  text-shadow: 0 1.5px 7px #13214c13;
+  opacity: 0.93;
+  letter-spacing: 0.04em;
+  animation: noirModalTitleFade .48s;
+}
+@keyframes noirModalTitleFade {
+  from { opacity:0; transform:translateY(-13px);}
+  to   { opacity:1; transform:none;}
 }
 .noir-modal-actions {
   display: flex;
-  gap: 12px;
+  gap: 13px;
   margin-top: 18px;
   justify-content: flex-end;
+  animation: noirActionsIn .37s;
+}
+@keyframes noirActionsIn {
+  from { opacity:0; transform:translateY(13px) scale(0.97);}
+  to   { opacity:1; transform:none;}
+}
+
+/* Premium interaction: feedback bar and floating toast drop-down */
+.noir-toast-bar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  min-height: 35px;
+  background: linear-gradient(90deg,var(--accent) 65%,var(--success) 100%);
+  color: #fff; font-size: 1.09rem; display: flex;
+  align-items: center; justify-content: center;
+  z-index: 2006;
+  border-radius: 0 0 13px 13px;
+  box-shadow: 0 4px 26px #2842df18;
+  opacity: 0.98;
+  animation: noirToastDrop .53s cubic-bezier(.32,1.18,.86,1.08);
+  font-family: var(--font-header);
+  font-weight: 700;
+  letter-spacing: 0.045em;
+}
+@keyframes noirToastDrop {
+  from { transform: translateY(-22px); opacity: 0; }
+  80% { transform: translateY(8px); opacity:0.81;}
+  to   { transform: none; opacity: 0.98; }
+}
+
+.noir-snackbar {
+  position: fixed;
+  right: 31px; bottom: 37px;
+  min-width: 224px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 9px;
+  padding: 14px 23px;
+  box-shadow: 0 3px 22px #243bfa44;
+  z-index: 2004;
+  animation: noirSnackbarIn .47s;
+  font-size: 1rem;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  opacity: 0.94;
+}
+@keyframes noirSnackbarIn {
+  from { transform: translateY(26px); opacity: 0; }
+  75% { transform: translateY(-5px); }
+  to { transform: none; opacity: 0.94; }
 }
 
 /* ---------- Inputs ---------- */

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import FreepikMysteryImages from './FreepikMysteryImages';
 import CrimeScene from './components/CrimeScene';
@@ -7,7 +7,6 @@ import SuspectPanel from './components/SuspectPanel';
 import InterrogationModal from './components/InterrogationModal';
 import AnimatedScene from './components/AnimatedScene';
 import AccusationPanel from './components/AccusationPanel';
-import GameHeader from './components/GameHeader'; // For now, will refactor header in next steps
 import GameOverModal from './components/GameOverModal';
 
 // Minimalist/Noir theme state
@@ -19,6 +18,50 @@ const GAME_PHASES = Object.freeze({
   ACCUSATION: 'accusation',
   ENDING: 'ending'
 });
+
+// --- Enhanced feedback: toast/snackbar/animated regions ---
+function FeedbackBar({ message, type, onClose }) {
+  return (
+    <div className="noir-toast-bar"
+         style={{background: type === "success" ? "linear-gradient(90deg,var(--accent) 75%,var(--success) 100%)"
+                 : type === "fail" ? "linear-gradient(90deg,var(--danger) 80%,#684 100%)"
+                 : undefined }}>
+      {message}
+      {onClose && (
+        <button aria-label="Dismiss"
+                onClick={onClose}
+                style={{
+                  marginLeft: 18, background: "none", border: "none", color: "#fff",
+                  fontWeight: 700, fontSize: 24, cursor: "pointer", opacity: 0.83
+                }}
+        >×</button>
+      )}
+    </div>
+  );
+}
+
+function Snackbar({ message, type, onClose }) {
+  return (
+    <div className="noir-snackbar"
+         style={{
+           background: type === "success" ? "var(--success)" :
+                       type === "fail" ? "var(--danger)" : "var(--accent)",
+         }}>
+      {message}
+      {onClose && (
+        <button aria-label="Close"
+          onClick={onClose}
+          style={{
+            marginLeft: 12, background: "none", border: "none", color: "#fff",
+            fontWeight: 700, fontSize: 18, cursor: "pointer"
+          }}>×</button>
+      )}
+    </div>
+  );
+}
+
+
+
 
 /**
  * Upgraded core clues and red herrings for a more challenging, narratively rich, and engaging mystery.
@@ -175,10 +218,29 @@ function App() {
   const [showGameOver, setShowGameOver] = useState(false);
   const [sceneAnimation, setSceneAnimation] = useState({ type: "intro", playing: true });
 
-  // noir/minimalist: set background and color scheme once
+  // Feedback/polish/UX state
+  const [feedback, setFeedback] = useState(null); // { message, type }
+  const [snackbar, setSnackbar] = useState(null);
+
+  // Add smart feedback on clue/interrogation, accusation, etc.
+  const showFeedback = (message, type = "neutral", time = 2000) => {
+    setFeedback({ message, type });
+    if (time > 0)
+      setTimeout(() => setFeedback(null), time);
+  };
+  const showSnackbar = (message, type = "neutral", time = 2000) => {
+    setSnackbar({ message, type });
+    if (time > 0)
+      setTimeout(() => setSnackbar(null), time);
+  };
+
+  // noir/minimalist: set background and color scheme once + motion theme
   useEffect(() => {
     document.documentElement.style.setProperty('background', 'linear-gradient(140deg, #15161a 74%, #202342 100%)');
     document.body.style.background = 'linear-gradient(140deg, #15161a 74%, #202342 100%)';
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.documentElement.style.setProperty('scroll-behavior', 'auto');
+    }
   }, []);
 
   // Navigation helpers
@@ -194,6 +256,15 @@ function App() {
     setClues(prev =>
       prev.map(c => (c.id === clueId ? { ...c, found: true } : c))
     );
+    const clue = clues.find(c => c.id === clueId);
+    if (clue) {
+      showSnackbar(
+        clue.redHerring
+          ? `${clue.name}: Red herring! (Decoy clue)`
+          : `Clue found: ${clue.name}`,
+        clue.redHerring ? "fail" : "success"
+      );
+    }
   };
 
   // PUBLIC_INTERFACE
@@ -230,10 +301,13 @@ function App() {
     let type = '';
     if (accused.guilty) {
       type = "success";
+      showFeedback("Case closed! You solved the mystery.", "success", 2300);
     } else if (clues.filter(c => c.found).length < 3) {
       type = "fail-clues";
+      showFeedback("Not enough clues for an accusation!", "fail", 2300);
     } else {
       type = "fail-logic";
+      showFeedback("Incorrect deduction—review your clues.", "fail", 2300);
     }
     setEnding({ type, suspect: accused });
     setShowGameOver(true);
@@ -284,12 +358,19 @@ function App() {
   // --- Main rendering ---
   return (
     <div className="App">
+      {/* Premium: Feedback bar (clue found, mistakes, accusation etc.) */}
+      {feedback && <FeedbackBar message={feedback.message} type={feedback.type} onClose={() => setFeedback(null)} />}
+      {snackbar && <Snackbar message={snackbar.message} type={snackbar.type} onClose={() => setSnackbar(null)} />}
+
       {/* Persistent navigation sidebar (vertical desktop, horizontal mobile) */}
-      <nav className="noir-sidebar" aria-label="Primary">
+      <nav className="noir-sidebar" aria-label="Primary" style={{
+        transition: "box-shadow 0.31s cubic-bezier(.3,.81,.58,1.06)", zIndex: 1099
+      }}>
         <button
           className={`noir-nav-btn${navTab === 0 ? " selected" : ""}`}
           aria-label="Crime Scene"
-          onClick={() => { setNavTab(0); setGamePhase(GAME_PHASES.SCENE); }}
+          onClick={() => { setNavTab(0); setGamePhase(GAME_PHASES.SCENE); showFeedback("Crime scene view", "neutral", 900); }}
+          style={{transition: "background var(--transition), color var(--transition), box-shadow var(--transition)"}}
         >
           <span className="noir-icon" aria-hidden="true">🕵️</span>
           <span style={{ fontSize: 13, marginTop: 2 }}>Scene</span>
@@ -297,7 +378,7 @@ function App() {
         <button
           className={`noir-nav-btn${navTab === 1 ? " selected" : ""}`}
           aria-label="Clue Board"
-          onClick={() => { setNavTab(1); setGamePhase(GAME_PHASES.NOTEBOOK); setNotebookOpen(true); }}
+          onClick={() => { setNavTab(1); setGamePhase(GAME_PHASES.NOTEBOOK); setNotebookOpen(true); showFeedback("Clue board opened", "neutral", 900); }}
         >
           <span className="noir-icon" aria-hidden="true">📝</span>
           <span style={{ fontSize: 13, marginTop: 2 }}>Clues</span>
@@ -305,7 +386,7 @@ function App() {
         <button
           className={`noir-nav-btn${navTab === 2 ? " selected" : ""}`}
           aria-label="Suspects"
-          onClick={() => { setNavTab(2); setGamePhase(GAME_PHASES.SCENE); setNotebookOpen(false); }}
+          onClick={() => { setNavTab(2); setGamePhase(GAME_PHASES.SCENE); setNotebookOpen(false); showFeedback("Suspect dossiers loaded", "neutral", 900); }}
         >
           <span className="noir-icon" aria-hidden="true">🕴️</span>
           <span style={{ fontSize: 13, marginTop: 2 }}>Suspects</span>
@@ -313,7 +394,7 @@ function App() {
         <button
           className={`noir-nav-btn${navTab === 3 ? " selected" : ""}`}
           aria-label="Accuse"
-          onClick={() => { setNavTab(3); openAccusation(); }}
+          onClick={() => { setNavTab(3); openAccusation(); showFeedback("Prepare your accusation...", "danger", 1200); }}
         >
           <span className="noir-icon" aria-hidden="true" style={{ fontWeight: "bold" }}>⚡</span>
           <span style={{ fontSize: 13, marginTop: 2 }}>Accuse</span>
@@ -324,7 +405,6 @@ function App() {
         {/* Noir header/topbar */}
         <header className="noir-header" role="banner">
           <div className="noir-header-brand">
-            {/* Placeholder icon - replace with SVG silhouette later */}
             <span style={{
               fontWeight: 700, color: "var(--accent)",
               display: "inline-block", fontSize: 28, letterSpacing: "0.06em"
@@ -376,9 +456,13 @@ function App() {
         )}
         {/* Main game area */}
         {(gamePhase !== GAME_PHASES.INTRO && !sceneAnimation.playing) && (
-          <main className="noir-main-area" role="main">
+          <main className="noir-main-area" role="main"
+            style={{
+              transition: "box-shadow 0.28s cubic-bezier(.7,-0.03,.62,1.12), background 0.19s",
+              boxShadow: "0 4px 29px #31244c13"
+            }}>
             {/* Scene on left, notebook/suspect drawer on right */}
-            <section className="noir-board">
+            <section className="noir-board" style={{ transition: "box-shadow 0.28s" }}>
               <CrimeScene
                 clues={clues}
                 onClueFound={onClueFound}
@@ -387,7 +471,14 @@ function App() {
                 }
               />
             </section>
-            <aside className="noir-drawer-panel" aria-label={notebookOpen ? "Clue Board" : "Suspect List"}>
+            <aside className="noir-drawer-panel"
+              aria-label={notebookOpen ? "Clue Board" : "Suspect List"}
+              style={{
+                boxShadow: notebookOpen
+                  ? "0 3px 23px #4559df33"
+                  : "0 1px 9px #243bfa18",
+                transition: "box-shadow 0.35s cubic-bezier(.65,.23,.3,1.08)"
+              }}>
               {notebookOpen ? (
                 <ClueNotebook
                   clues={clues}
@@ -411,12 +502,12 @@ function App() {
             onRestart={restartGame}
           />
         )}
-        {/* Noir: Snackbars/feedback region for future accessibility */}
         {/* Visual asset showcase (footer — for demonstration/polish only) */}
         <div style={{
           width: "100%", maxWidth: 690, margin: "0 auto",
           marginBottom: 14, background: "rgba(30,33,44,0.84)",
-          borderRadius: 17, boxShadow: "0 1px 9px #0511451b"
+          borderRadius: 17, boxShadow: "0 1px 9px #0511451b",
+          transition: "box-shadow 0.21s"
         }}>
           <FreepikMysteryImages />
         </div>
