@@ -20,34 +20,101 @@ const GAME_PHASES = Object.freeze({
   ENDING: 'ending'
 });
 
+/**
+ * Upgraded core clues and red herrings for a more challenging, narratively rich, and engaging mystery.
+ * Each clue provides stronger story connection, cleverer logic, and integrates advanced red herring mechanics.
+ * 
+ * New fields: 
+ * - extraHint: optional hint supplied after initial puzzle fail
+ * - redHerringType: for more sophisticated decoy logic (e.g. "diversion", "partial-truth")
+ * - fakeLink: ties some red herrings to suspect or story for deeper player misdirection
+ * - explanation: how the clue helps/hurts the case post-discovery, for logics/mini-UX
+ */
 const initialClues = [
   {
-    id: "clue-bloodstain", name: "Bloodstain", found: false, location: { x: 40, y: 25 },
+    id: "clue-bloodstain", name: "Bloodstain on Sculpture", found: false,
+    location: { x: 40, y: 25 },
     puzzle: "pattern",
-    description: "A fresh bloodstain near the broken vase.",
+    description: "A smear of fresh blood trails the edge of the broken marble sculpture, too high for a simple fall.",
+    extraHint: "The blood pattern curves away from the accident site.",
     redHerring: false,
     connections: [],
+    canonical: true,
+    flavor: "crime",
+    difficulty: "hard",
+    explanation: "Suggests victim interacted with attacker at close range; not accidental."
   },
   {
-    id: "clue-fingerprint", name: "Fingerprint", found: false, location: { x: 65, y: 38 },
+    id: "clue-fingerprint", name: "Glove Print on Window Latch", found: false,
+    location: { x: 63, y: 35 },
     puzzle: "match",
-    description: "A suspicious fingerprint on the window.",
+    description: "A partial print, consistent with a left glove, smudges the inner latch of a rarely opened window.",
+    extraHint: "One suspect claims the window was always stuck.",
     redHerring: false,
     connections: [],
+    canonical: true,
+    flavor: "entry",
+    difficulty: "medium",
+    explanation: "Points to a forced entry or staged scene; links to alibis for time of entry."
   },
   {
-    id: "clue-cat-hair", name: "Cat Hair", found: false, location: { x: 15, y: 79 },
+    id: "clue-cat-hair", name: "Orange Cat Hair", found: false,
+    location: { x: 18, y: 77 },
     puzzle: "hidden",
-    description: "A clump of orange cat hair on the chair.",
+    description: "Some long orange cat hair rests on the back of a padded chair, but the victim was allergic.",
+    extraHint: "No cat reportedly lives at the house.",
     redHerring: true,
-    connections: [],
+    redHerringType: "diversion",
+    fakeLink: "Miss Peach",
+    explanation: "Distracts from actual physical clues—the real culprit is not linked to pets."
   },
   {
-    id: "clue-broken-watch", name: "Broken Watch", found: false, location: { x: 75, y: 77 },
+    id: "clue-broken-watch", name: "Broken Gold Watch", found: false,
+    location: { x: 78, y: 73 },
     puzzle: "logic",
-    description: "A classic watch stopped at 7:12.",
+    description: "A gold pocket watch, its crystal shattered and hands frozen at 7:12. The family crest is faintly bloodied.",
+    extraHint: "The suspect’s dinner was due at 7:10.",
     redHerring: false,
     connections: [],
+    canonical: true,
+    flavor: "timing",
+    difficulty: "hard",
+    explanation: "Pinpoints time of fatal altercation; only one person has no alibi at this time."
+  },
+  {
+    id: "clue-gloves", name: "Pair of Leather Gloves", found: false,
+    location: { x: 59, y: 49 },
+    puzzle: "logic",
+    description: "Dark gloves partly hidden under the settee, with a faint reddish stain on one index finger.",
+    extraHint: "Weather is mild—nobody claimed to need gloves tonight.",
+    redHerring: false,
+    connections: [],
+    canonical: true,
+    flavor: "tool",
+    difficulty: "medium",
+    explanation: "Implies a prepared intruder; excludes suspects with bare hands or open wounds."
+  },
+  {
+    id: "clue-crushed-invite", name: "Crushed Party Invitation", found: false,
+    location: { x: 34, y: 65 },
+    puzzle: "hidden",
+    description: "A crumpled, muddy party invite addressed to 'P. Plum', with a faded shoeprint.",
+    extraHint: "The invite was not on the guest list.",
+    redHerring: true,
+    redHerringType: "partial-truth",
+    fakeLink: "Prof. Plum",
+    explanation: "Designed as a subtle decoy: Plum's invite was lost, but not found here—implies misdirection."
+  },
+  {
+    id: "clue-detective-badge", name: "Dropped Detective’s Badge", found: false,
+    location: { x: 12, y: 19 },
+    puzzle: "pattern",
+    description: "A cheap child’s detective badge lies beneath a side table, oddly clean amid the dust.",
+    extraHint: "No children were present at the party.",
+    redHerring: true,
+    redHerringType: "whimsy",
+    fakeLink: "",
+    explanation: "Meant to confuse; unrelated to any guest or event."
   }
 ];
 

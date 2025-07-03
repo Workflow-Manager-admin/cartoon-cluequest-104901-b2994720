@@ -174,62 +174,128 @@ function CrimeScene({ clues, onClueFound, sceneComplete }) {
   );
 }
 
-// --- Mini Puzzle Modal (Basic Demo Implementations) ---
+/**
+ * MiniPuzzleModal
+ * Enhanced for more challenging puzzles, red herring meta-feedback, and UX polish.
+ */
 function MiniPuzzleModal({ clue, onWin, onClose }) {
-  // Can be expanded; shows a simple "Simon says" or logic or match minigame
+  // Red Herrings: show specific message, and visual polish
+  const isRedHerring = clue.redHerring;
   return (
     <div style={{
       position: "fixed",
       top: 0, left: 0,
       width: "100vw", height: "100vh",
-      background: "#0009",
+      background: "rgba(20,22,37,0.78)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 99
+      zIndex: 99,
+      backdropFilter: "blur(4px)"
     }}>
       <div style={{
-        background: "#fff",
+        background: isRedHerring ? "#fff0f2" : "#fff",
         borderRadius: 18,
-        boxShadow: "0 4px 28px #6b93e430",
-        minWidth: 320, minHeight: 180,
+        boxShadow: isRedHerring ? "0 4px 28px #fe437c42" : "0 4px 28px #6b93e430",
+        minWidth: 340, minHeight: 190,
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         padding: 26,
-        position: "relative"
+        position: "relative",
+        border: isRedHerring ? "2.1px solid var(--danger)" : "none",
+        outline: isRedHerring ? "2.8px solid #ed3!" : undefined,
       }}>
         <button
           onClick={onClose}
           style={{
             position: "absolute", top: 13, right: 13, fontSize: 19,
-            borderRadius: "50%", border: "none", background: "#FAE4C8", color: "#000"
+            borderRadius: "50%", border: "none", background: "#FAE4C8", color: "#000",
+            fontWeight: 800, width: 36, height: 36, boxShadow: "none"
           }}
+          aria-label="Close puzzle"
         >✕</button>
-        <h3 style={{ color: "#4E6E9A", marginTop: 4 }}>
-          {clue.name} Puzzle
+        <h3 style={{ color: isRedHerring ? "var(--danger)" : "#4E6E9A", marginTop: 4 }}>
+          {clue.redHerring ? "Red Herring!" : `${clue.name} Puzzle`}
         </h3>
-        <p>{clue.description}</p>
-        {/* Placeholder minigame: quick memory/order/logic */}
+        <div style={{
+          color: isRedHerring ? "var(--danger)" : "var(--text-main)",
+          fontSize: isRedHerring ? 16 : 15,
+          marginBottom: 6
+        }}>
+          {clue.description}
+        </div>
+        {/* Show enhanced explanation or extra hint if clue is found */}
+        <div style={{
+          color: isRedHerring ? "#902" : "#487bef",
+          fontWeight: 600,
+          fontSize: 14.2,
+          opacity: 0.93,
+          marginBottom: 4
+        }}>
+          {clue.explanation}
+        </div>
+        {/* Enhanced: show visual/logic red herring feedback, and upgraded minigames */}
         <div style={{
           margin: "22px 0",
           minHeight: 70, minWidth: 220,
-          background: "#fffbf7", borderRadius: 12, display: "flex",
-          alignItems: "center", justifyContent: "center", fontSize: 19
+          background: isRedHerring ? "#ffeffd" : "#fffbf7",
+          borderRadius: 12, display: "flex",
+          alignItems: "center", justifyContent: "center", fontSize: 19,
+          border: isRedHerring ? "2.4px dashed var(--danger)" : undefined
         }}>
-          {/* MINI-GAME LOGIC (simple demo for each puzzle type) */}
+          {/* MINI-GAME LOGIC or red herring direct win */}
           {
-            clue.puzzle === "pattern" && <PatternPuzzle onSuccess={onWin} />
-          }
-          {
-            clue.puzzle === "match" && <MatchPuzzle onSuccess={onWin} />
-          }
-          {
-            clue.puzzle === "logic" && <LogicPuzzle onSuccess={onWin} />
-          }
-          {
-            clue.puzzle === "hidden" && (
-              <button onClick={onWin} style={{fontWeight:700, fontSize:18}}>Just a silly red herring!</button>
+            isRedHerring ? (
+              <button
+                onClick={onWin}
+                style={{
+                  fontWeight: 800,
+                  fontSize: 18,
+                  background: "var(--danger)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "7px 22px",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 7px #fa437c1c",
+                  margin: 7
+                }}
+                aria-label="Acknowledge red herring"
+              >
+                This clue leads nowhere—move on!
+              </button>
+            ) : (
+              <>
+                {clue.puzzle === "pattern" && <PatternPuzzle onSuccess={onWin} />}
+                {clue.puzzle === "match" && <MatchPuzzle onSuccess={onWin} />}
+                {clue.puzzle === "logic" && <LogicPuzzle onSuccess={onWin} />}
+                {clue.puzzle === "hidden" && (
+                  <button
+                    onClick={onWin}
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 17,
+                      background: "#feeee4",
+                      color: "#d34",
+                      borderRadius: 8,
+                      border: "1.7px dashed #f1b9b9",
+                      padding: "7px 15px"
+                    }}
+                  >It’s just a trivial decoy!</button>
+                )}
+              </>
             )
           }
         </div>
+        {/* Show extra hint field on fail or always for now */}
+        {clue.extraHint &&
+          <div style={{
+            marginTop: 12,
+            color: isRedHerring ? "#be1278" : "#765ae9",
+            fontSize: 13.7,
+            opacity: 0.80
+          }}>
+            Hint: {clue.extraHint}
+          </div>
+        }
       </div>
     </div>
   );

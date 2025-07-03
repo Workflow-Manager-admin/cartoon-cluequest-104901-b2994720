@@ -34,34 +34,85 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
             key={clue.id}
             style={{
               margin: "15px 0",
-              background: "rgba(85,117,255,0.08)",
-              borderLeft: "5px solid var(--accent)",
+              background: clue.redHerring
+                ? "rgba(238,57,88,0.08)"
+                : "rgba(85,117,255,0.08)",
+              borderLeft: clue.redHerring
+                ? "5px solid var(--danger)"
+                : "5px solid var(--accent)",
               padding: "13px 12px 7px 22px",
               borderRadius: 9,
-              boxShadow: "0 1px 5px #314ceb31"
+              boxShadow: clue.redHerring
+                ? "0 1px 8px #fa435c26"
+                : "0 1px 5px #314ceb31",
+              position: "relative",
+              transition: "background .13s, border-color .18s"
             }}
             aria-label={`Clue: ${clue.name}${clue.redHerring ? " (Red Herring)" : ""}`}
+            tabIndex={0}
+            onFocus={e => {
+              // Optionally: show extra hint on focus, etc.
+            }}
+            onMouseEnter={e => {
+              // Could show tooltip with explanation
+            }}
           >
-            <span style={{ fontWeight: 700, color: "var(--accent)", fontSize: 16 }}>{clue.name}</span>
-            <span style={{ color: "var(--danger)", marginLeft: 10, fontStyle: "italic", fontWeight: 600 }}>
-              {clue.redHerring ? " (Red Herring)" : ""}
+            <span style={{ fontWeight: 800, color: clue.redHerring ? "var(--danger)" : "var(--accent)", fontSize: 17 }}>
+              {clue.name}
             </span>
+            {clue.redHerring && (
+              <span style={{ color: "var(--danger)", marginLeft: 10, fontWeight: 700, fontStyle: "italic" }}>
+                (Red Herring)
+              </span>
+            )}
             <div style={{ fontSize: 15, color: "var(--text-light)", margin: "7px 0 4px 0" }}>
               {clue.description}
             </div>
+            {/* Advanced red herring/puzzle logic: show type and fake link, if present */}
+            {clue.redHerring && (
+              <div style={{ fontSize: 13, color: "var(--danger)", fontStyle: "italic", marginBottom: 3 }}>
+                {clue.redHerringType ? <span>Red Herring type: <b>{clue.redHerringType}</b>. </span> : ''}
+                {clue.fakeLink && <span>Links to: <b>{clue.fakeLink}</b>.</span>}
+                <span style={{ marginLeft: 7, color: "var(--text-light)" }}>
+                  {clue.explanation}
+                </span>
+              </div>
+            )}
+            {/* Show extra hint for all clues if it was supplied */}
+            {clue.extraHint && (
+              <div style={{
+                fontSize: 13.5,
+                color: "#e8d44d",
+                fontWeight: 600,
+                opacity: 0.88,
+                marginTop: "4px"
+              }}>
+                Hint: {clue.extraHint}
+              </div>
+            )}
+            {!clue.redHerring && (
+              <div style={{
+                fontSize: 13.5,
+                color: "var(--success)",
+                fontWeight: 600,
+                marginTop: 4
+              }}>
+                {clue.explanation}
+              </div>
+            )}
             <div style={{ marginTop: 7 }}>
               <b>Linked suspects:&nbsp;</b>
-              {suspects.filter(s => s.clueLinks.includes(clue.id)).length === 0 ?
+              {suspects.filter(s => s.clueLinks && s.clueLinks.includes(clue.id)).length === 0 ?
                 <span style={{ color: "#888" }}>Unknown</span>
                 :
-                suspects.filter(s => s.clueLinks.includes(clue.id)).map(s => (
+                suspects.filter(s => s.clueLinks && s.clueLinks.includes(clue.id)).map(s => (
                   <button
                     key={s.id}
                     onClick={() => onSuspectClick(s.id)}
                     className="noir-btn"
                     aria-label={`View dossier for ${s.name}`}
                     style={{
-                      background: "var(--accent)",
+                      background: !clue.redHerring ? "var(--accent)" : "var(--danger)",
                       color: "#fff",
                       border: "none",
                       borderRadius: "var(--radius-small)",
@@ -71,6 +122,7 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
                       padding: "4px 13px",
                       cursor: "pointer",
                       transition: "background var(--transition), color var(--transition)",
+                      opacity: clue.redHerring ? 0.84 : 1
                     }}
                   >
                     <span className="noir-avatar-initials" style={{
@@ -78,7 +130,7 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
                       width: 29,
                       fontSize: "1rem",
                       background: "#232e46",
-                      color: "var(--accent)",
+                      color: !clue.redHerring ? "var(--accent)" : "var(--danger)",
                       marginRight: 5,
                       display: "inline-flex", alignItems: "center", justifyContent: "center",
                       borderRadius: 8,
