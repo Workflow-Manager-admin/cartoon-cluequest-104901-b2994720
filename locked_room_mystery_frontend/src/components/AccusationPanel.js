@@ -2,7 +2,8 @@ import React, { useState } from "react";
 
 /**
  * PUBLIC_INTERFACE
- * AccusationPanel - Modal for selecting and accusing a suspect.
+ * AccusationPanel - Minimalist noir glass-modal for selecting and accusing a suspect.
+ * Modern accessibility, focus style, initials avatar (no emoji).
  * Props:
  *   suspects: Array - all suspects
  *   onAccuse: fn(suspectId)
@@ -12,77 +13,122 @@ function AccusationPanel({ suspects, onAccuse, onCancel }) {
   const [selected, setSelected] = useState(null);
 
   return (
-    <div style={{
-      position: "fixed",
-      top: 0, left: 0,
-      width: "100vw", height: "100vh",
-      background: "#0007",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 1000
-    }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: 14,
-        minWidth: 330, maxWidth: 410,
-        padding: 28, boxShadow: "0 2px 22px #E74C3C1e",
-        textAlign: "center", position: "relative"
-      }}>
-        <button onClick={onCancel}
+    <div
+      className="noir-modal-bg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="accuse-modal-title"
+      tabIndex={-1}
+      style={{ animation: "noirModalFadeIn .33s cubic-bezier(.79,-0.14,.71,1.34) 1" }}
+    >
+      <div className="noir-modal" style={{ maxWidth: 430, minWidth: 295, padding: "36px 33px 27px 33px" }}>
+        <button
+          aria-label="Close accusation panel"
+          onClick={onCancel}
           style={{
-            position: "absolute", top: 10, right: 12,
-            border: "none", background: "#ffd3b7", borderRadius: 6,
-            color: "#800",
-            fontWeight: 700, fontSize: 16
-          }}>✕</button>
-        <h2 style={{ color: "#E74C3C" }}>🕵️ Time to Make Your Accusation!</h2>
-        <div style={{ margin: "20px 0" }}>
+            position: "absolute", top: 15, right: 17,
+            background: "rgba(27,32,49,0.18)",
+            border: "none",
+            borderRadius: 7,
+            color: "var(--danger)",
+            fontWeight: 700, fontSize: 19,
+            width: 38, height: 38, cursor: "pointer",
+            boxShadow: "none",
+            transition: "background var(--transition), color var(--transition)",
+          }}
+        >✕</button>
+        <div className="noir-modal-titlebar" id="accuse-modal-title" style={{ marginBottom: 20, color: "var(--accent)" }}>
+          Make Your Accusation
+        </div>
+        <div style={{ margin: "13px 0 25px 0", display: "flex", flexDirection: "column", gap: 13 }}>
           {suspects.map(s => (
             <button
               key={s.id}
+              aria-label={`Accuse ${s.name}`}
               onClick={() => setSelected(s.id)}
+              className="noir-btn"
               style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: selected === s.id ? "#F5B041" : "#EEE",
-                color: "#4E6E9A",
-                border: selected === s.id ? "2px solid #E74C3C" : "1px solid #aaa",
-                borderRadius: 12,
+                display: "flex", alignItems: "center", gap: 18,
+                background: selected === s.id ? "rgba(123,145,254,0.13)" : "rgba(38,42,55,0.07)",
+                color: selected === s.id ? "var(--accent)" : "var(--text-main)",
+                border: selected === s.id ? "2px solid var(--accent)" : "1.5px solid var(--border-color, #25304b)",
+                borderRadius: "var(--radius)",
                 fontWeight: 600,
                 fontSize: 18,
-                padding: "10px 20px",
-                margin: "0 7px 8px 0",
+                padding: "12px 18px 10px 12px",
+                margin: "0 0 0 0",
                 cursor: "pointer",
-                boxShadow: selected === s.id ? "0 2px 10px #fa4e1b29" : "none"
+                boxShadow: selected === s.id ? "0 2px 12px #637bfa14" : "none",
+                outline: selected === s.id ? "2.2px solid var(--accent)" : "none",
+                transition: "all var(--transition)",
+                justifyContent: "flex-start"
               }}
+              tabIndex={0}
             >
-              <span style={{ fontSize: 29 }}>{s.emoji}</span> {s.name}
+              {/* Noir Initials avatar */}
+              <span
+                aria-hidden="true"
+                className="noir-avatar-initials"
+                style={{
+                  height: 38, width: 38,
+                  fontSize: 1.09 + "rem",
+                  border: selected === s.id ? "2px solid var(--accent)" : "1.2px solid #3338",
+                  background: "#232e46",
+                  marginRight: 7,
+                  userSelect: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, letterSpacing: "1.25px"
+                }}
+              >
+                {s.avatar || getInitials(s.name)}
+              </span>
+              <span style={{ fontWeight: 700, fontSize: 17 }}>{s.name}</span>
             </button>
           ))}
         </div>
-        <button
-          style={{
-            marginTop: 10,
-            background: "#4E6E9A",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 25px",
-            fontWeight: 700,
-            fontSize: 19,
-            letterSpacing: 0.6,
-            cursor: selected ? "pointer" : "not-allowed",
-            opacity: selected ? 1 : 0.5
-          }}
-          disabled={!selected}
-          onClick={() => selected ? onAccuse(selected) : undefined}
-        >
-          Accuse!
-        </button>
-        <div style={{ marginTop: 14, fontSize: 14, color: "#944" }}>
-          Choose carefully—the ending will change!
+        <div className="noir-modal-actions" style={{ marginTop: 20 }}>
+          <button
+            className="noir-btn"
+            style={{
+              background: "none", color: "var(--text-light)",
+              border: "var(--border-input)", minWidth: 84,
+              marginRight: 14
+            }}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+          <button
+            className="noir-btn-primary"
+            style={{
+              minWidth: 105,
+              background: selected ? "var(--accent)" : "var(--surface-bg)",
+              color: selected ? "#fff" : "var(--text-light)",
+              cursor: selected ? "pointer" : "not-allowed",
+              opacity: selected ? 1 : 0.67
+            }}
+            aria-disabled={!selected}
+            disabled={!selected}
+            onClick={() => selected ? onAccuse(selected) : undefined}
+          >
+            Accuse
+          </button>
+        </div>
+        <div style={{ marginTop: 14, fontSize: 14, color: "var(--danger)", textAlign: "center" }}>
+          Choose carefully — your decision will end the game!
         </div>
       </div>
     </div>
   );
+}
+
+// Helper to get initials from name (fallback)
+function getInitials(name) {
+  return (name || "")
+    .split(' ')
+    .map(n => n[0]?.toUpperCase())
+    .join('')
+    .slice(0, 2);
 }
 
 export default AccusationPanel;

@@ -56,7 +56,7 @@ const initialSuspects = [
   {
     id: "suspect-miss-peach",
     name: "Miss Peach",
-    avatar: "MP",
+    avatar: "MP", // Noir minimalist avatar: stylized initials
     description: "The victim's art student niece, anxious and defensive.",
     emotion: "nervous",
     dialogues: ["I'm just a student here, I swear!", "Why does everyone suspect me?", "I just wanted to help Uncle..."],
@@ -68,7 +68,7 @@ const initialSuspects = [
   {
     id: "suspect-prof-plum",
     name: "Prof. Plum",
-    avatar: "PP",
+    avatar: "PP", // Noir minimalist avatar: stylized initials
     description: "Neighboring science teacher, logical and calm.",
     emotion: "calm",
     dialogues: ["Let's stick to the facts, detective.", "I heard a crash, but saw nothing.", "I always lock my windows."],
@@ -80,7 +80,7 @@ const initialSuspects = [
   {
     id: "suspect-mr-black",
     name: "Mr. Black",
-    avatar: "MB",
+    avatar: "MB", // Noir minimalist avatar: stylized initials
     description: "The mysterious butler, loyal but secretive.",
     emotion: "defiant",
     dialogues: ["I did only as I was told.", "Those questions are... unnecessary.", "I don't know about any bloodstain."],

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 /**
  * PUBLIC_INTERFACE
- * InterrogationModal - Chat/interrogation interface with basic branching (demo).
+ * InterrogationModal - Noir glass-style modal, initials avatar, accessible, no emoji.
  * Props:
  *   suspect: Object (current suspect)
  *   clues: Array (clues)
@@ -12,7 +12,7 @@ function InterrogationModal({ suspect, clues, onClose }) {
   const [stage, setStage] = useState(0);
   const [emotion, setEmotion] = useState(suspect.emotion);
 
-  // Simulate branching on response ("Did you see the bloodstain?")
+  // Simulate branching on response
   const handleResponse = (resp) => {
     if (resp === "alibi") {
       setStage(2); setEmotion("defensive");
@@ -27,84 +27,148 @@ function InterrogationModal({ suspect, clues, onClose }) {
     }
   };
 
-  // Chat messages
   return (
-    <div style={{
-      position: "fixed",
-      top: 0, left: 0,
-      width: "100vw", height: "100vh",
-      background: "#0008",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 999
-    }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: 15,
-        minWidth: 333, maxWidth: 480,
-        minHeight: 270,
-        padding: 30, boxShadow: "0 2px 18px #5ea7d136",
-        position: "relative"
-      }}>
+    <div
+      className="noir-modal-bg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="interrogation-title"
+      tabIndex={-1}
+      style={{ zIndex: 1998 }}
+    >
+      <div
+        className="noir-modal"
+        style={{
+          minWidth: 320, maxWidth: 498,
+          minHeight: 240,
+          padding: "34px 29px 29px 29px",
+          background: "var(--surface-bg)",
+          borderRadius: "var(--radius-large)",
+          boxShadow: "var(--shadow-modal)",
+        }}
+      >
         <button
           onClick={onClose}
+          aria-label="Close interrogation dialog"
           style={{
-            position: "absolute", top: 11, right: 11, fontSize: 16, fontWeight: 700, color: "#7b5e2c",
-            background: "#f7d7ae", border: "none", borderRadius: 6
-          }}>
-          ✕
-        </button>
-
-        {/* Cartoon suspect avatar + state */}
+            position: "absolute", top: 13, right: 13,
+            fontSize: 18,
+            borderRadius: "50%",
+            border: "none",
+            background: "rgba(27,32,49,0.18)",
+            color: "var(--danger)",
+            width: 34, height: 34,
+            fontWeight: 700,
+            cursor: "pointer"
+          }}
+        >✕</button>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 7 }}>
+          <span
+            aria-hidden="true"
+            className="noir-avatar-initials"
+            style={{
+              height: 41,
+              width: 41,
+              borderRadius: 11,
+              background: "#232e46",
+              color: "var(--accent)",
+              fontSize: 20,
+              fontWeight: 700,
+              userSelect: "none",
+              letterSpacing: "1.18px",
+              marginRight: 6,
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }}
+          >
+            {suspect.avatar || getInitials(suspect.name)}
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 21, color: "var(--accent)" }}>
+            {suspect.name}
+          </span>
           <span style={{
-            fontSize: 38,
-            transition: "transform .18s",
-            transform: emotion === "anxious" ? "rotate(-8deg) scale(1.04)" :
-              emotion === "defensive" ? "scale(1.08)" : "none"
-          }}>{suspect.emoji}</span>
-          <span style={{ fontWeight: 700, fontSize: 22 }}>{suspect.name}</span>
-          <span style={{
-            marginLeft: 16,
+            marginLeft: 11,
             color:
-              emotion === "nervous" ? "#E74C3C" :
-                (emotion === "calm" ? "#4E6E9A" :
-                  (emotion === "defensive" ? "#F5B041" : "#5CC364"))
+              emotion === "nervous" ? "var(--danger)" :
+                (emotion === "calm" ? "var(--accent)" :
+                  (emotion === "defensive" ? "#cda518" : "#4ecc90")),
+            fontWeight: 600,
+            fontSize: 15
           }}>
             {emotion}
           </span>
         </div>
         <div style={{
-          minHeight: 60, padding: 10, background: "#ecf5ff33",
-          borderRadius: 8, marginBottom: 15
+          minHeight: 53,
+          padding: "13px 14px",
+          background: "rgba(49,59,82,0.14)",
+          borderRadius: 9,
+          color: "var(--text-main)",
+          marginBottom: 13,
+          fontSize: 16.5
         }}>
-          <span style={{ fontSize: 17 }}>{suspect.dialogues[stage]}</span>
+          <span>{suspect.dialogues[stage]}</span>
         </div>
-        <div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <button
+            className="noir-btn"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "var(--radius-small)",
+              fontWeight: 700,
+              padding: "6px 18px",
+              fontSize: 15,
+              cursor: "pointer"
+            }}
             onClick={() => handleResponse("alibi")}
-            style={{
-              background: "#F5B041", color: "#4E6E9A", borderRadius: 8, border: "none",
-              fontWeight: 600, padding: "6px 17px", margin: 5, cursor: "pointer"
-            }}
-          >Where were you?</button>
+          >
+            Where were you?
+          </button>
           <button
+            className="noir-btn"
+            style={{
+              background: "var(--danger)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "var(--radius-small)",
+              fontWeight: 700,
+              padding: "6px 18px",
+              fontSize: 15,
+              cursor: "pointer"
+            }}
             onClick={() => handleResponse("motive")}
-            style={{
-              background: "#E74C3C", color: "#fff", borderRadius: 8, border: "none",
-              fontWeight: 600, padding: "6px 17px", margin: 5, cursor: "pointer"
-            }}
-          >Any reason to hurt the victim?</button>
+          >
+            Motive?
+          </button>
           <button
-            onClick={onClose}
+            className="noir-btn"
             style={{
-              background: "#ccc", color: "#222", borderRadius: 8, border: "none",
-              fontWeight: 600, padding: "6px 17px", margin: 5, cursor: "pointer"
+              background: "rgba(123, 145, 254, 0.076)",
+              color: "var(--text-light)",
+              border: "var(--border-input)",
+              borderRadius: "var(--radius-small)",
+              fontWeight: 600,
+              padding: "6px 13px",
+              fontSize: 15,
+              cursor: "pointer"
             }}
-          >Leave</button>
+            onClick={onClose}
+          >
+            Leave
+          </button>
         </div>
       </div>
     </div>
   );
+}
+
+function getInitials(name) {
+  return (name || "")
+    .split(' ')
+    .map(n => n[0]?.toUpperCase())
+    .join('')
+    .slice(0, 2);
 }
 
 export default InterrogationModal;
