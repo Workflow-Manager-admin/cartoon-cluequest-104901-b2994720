@@ -7,16 +7,10 @@ import SuspectPanel from './components/SuspectPanel';
 import InterrogationModal from './components/InterrogationModal';
 import AnimatedScene from './components/AnimatedScene';
 import AccusationPanel from './components/AccusationPanel';
-import GameHeader from './components/GameHeader';
+import GameHeader from './components/GameHeader'; // For now, will refactor header in next steps
 import GameOverModal from './components/GameOverModal';
 
-// Main cartoon color palette
-const THEME_COLORS = {
-  primary: "#4E6E9A",   // Deep blue/purple
-  secondary: "#F5B041", // Cartoon orange
-  accent: "#E74C3C",    // Red lipstick/alert
-};
-
+// Minimalist/Noir theme state
 const GAME_PHASES = Object.freeze({
   INTRO: 'intro',
   SCENE: 'scene',
@@ -26,44 +20,43 @@ const GAME_PHASES = Object.freeze({
   ENDING: 'ending'
 });
 
-// Initial game state and assets
 const initialClues = [
-  // Example cartoon clues (can be extended)
   {
     id: "clue-bloodstain", name: "Bloodstain", found: false, location: { x: 40, y: 25 },
-    puzzle: "pattern", // mini-game type
+    puzzle: "pattern",
     description: "A fresh bloodstain near the broken vase.",
     redHerring: false,
     connections: [],
   },
   {
     id: "clue-fingerprint", name: "Fingerprint", found: false, location: { x: 65, y: 38 },
-    puzzle: "match", // mini-game type
+    puzzle: "match",
     description: "A suspicious fingerprint on the window.",
     redHerring: false,
     connections: [],
   },
   {
     id: "clue-cat-hair", name: "Cat Hair", found: false, location: { x: 15, y: 79 },
-    puzzle: "hidden", // just a red herring, no puzzle
+    puzzle: "hidden",
     description: "A clump of orange cat hair on the chair.",
     redHerring: true,
     connections: [],
   },
   {
     id: "clue-broken-watch", name: "Broken Watch", found: false, location: { x: 75, y: 77 },
-    puzzle: "logic", // logic puzzle
+    puzzle: "logic",
     description: "A classic watch stopped at 7:12.",
     redHerring: false,
     connections: [],
   }
 ];
 
+// Use stylized initials in place of emoji for noir
 const initialSuspects = [
   {
-    id: "suspect-miss-peach", 
+    id: "suspect-miss-peach",
     name: "Miss Peach",
-    emoji: "🧑‍🦰",
+    avatar: "MP",
     description: "The victim's art student niece, anxious and defensive.",
     emotion: "nervous",
     dialogues: ["I'm just a student here, I swear!", "Why does everyone suspect me?", "I just wanted to help Uncle..."],
@@ -73,9 +66,9 @@ const initialSuspects = [
     guilty: false
   },
   {
-    id: "suspect-prof-plum", 
+    id: "suspect-prof-plum",
     name: "Prof. Plum",
-    emoji: "👨‍🏫",
+    avatar: "PP",
     description: "Neighboring science teacher, logical and calm.",
     emotion: "calm",
     dialogues: ["Let's stick to the facts, detective.", "I heard a crash, but saw nothing.", "I always lock my windows."],
@@ -85,54 +78,50 @@ const initialSuspects = [
     guilty: false
   },
   {
-    id: "suspect-mr-black", 
+    id: "suspect-mr-black",
     name: "Mr. Black",
-    emoji: "🕵️‍♂️",
+    avatar: "MB",
     description: "The mysterious butler, loyal but secretive.",
     emotion: "defiant",
     dialogues: ["I did only as I was told.", "Those questions are... unnecessary.", "I don't know about any bloodstain."],
     alibi: "Preparing dinner.",
     motive: "Rumored argument with victim.",
     clueLinks: ["clue-broken-watch"],
-    guilty: true // True culprit
-  },
+    guilty: true
+  }
 ];
 
 // PUBLIC_INTERFACE
 function App() {
   /**
    * Root component controlling game phase, state, and rendering.
-   * Handles navigation, cartoon theme, asset rendering, and master state.
+   * Handles navigation, theme, asset rendering, and master state.
    */
   const [gamePhase, setGamePhase] = useState(GAME_PHASES.INTRO);
-  const [theme] = useState("light"); // Fixed light; can be changed with a toggle if desired
+  // Theme currently fixed, palette controlled by CSS variables
   const [clues, setClues] = useState(initialClues);
   const [suspects, setSuspects] = useState(initialSuspects);
   const [notebookOpen, setNotebookOpen] = useState(false);
-  const [selectedSuspect, setSelectedSuspect] = useState(null); // for interrogation
+  const [selectedSuspect, setSelectedSuspect] = useState(null);
   const [accusationOpen, setAccusationOpen] = useState(false);
-  const [ending, setEnding] = useState(null); // {type: "confessed", suspect: ...}
+  const [ending, setEnding] = useState(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [sceneAnimation, setSceneAnimation] = useState({ type: "intro", playing: true });
 
-  // Effect to apply CSS vars for theme and color palette
+  // noir/minimalist: set background and color scheme once
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary-color', THEME_COLORS.primary);
-    document.documentElement.style.setProperty('--secondary-color', THEME_COLORS.secondary);
-    document.documentElement.style.setProperty('--accent-color', THEME_COLORS.accent);
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    document.documentElement.style.setProperty('background', 'linear-gradient(140deg, #15161a 74%, #202342 100%)');
+    document.body.style.background = 'linear-gradient(140deg, #15161a 74%, #202342 100%)';
+  }, []);
 
-  // Scene/phase navigation
+  // Navigation helpers
   const goToPhase = (phase) => {
     setGamePhase(phase);
-    // Close overlays as needed
     setNotebookOpen(false);
     setSelectedSuspect(null);
     setAccusationOpen(false);
   };
 
-  // When a clue is found (possibly after a mini-game)
   // PUBLIC_INTERFACE
   const onClueFound = (clueId) => {
     setClues(prev =>
@@ -140,21 +129,18 @@ function App() {
     );
   };
 
-  // When interrogating a suspect
   // PUBLIC_INTERFACE
   const startInterrogation = (suspectId) => {
     setSelectedSuspect(suspectId);
     setGamePhase(GAME_PHASES.INTERROGATION);
   };
 
-  // On completing interrogation or after making an accusation
   // PUBLIC_INTERFACE
   const endInterrogation = () => {
     setSelectedSuspect(null);
     setGamePhase(GAME_PHASES.SCENE);
   };
 
-  // On pressing the notebook button
   // PUBLIC_INTERFACE
   const toggleNotebook = () => {
     setNotebookOpen(open => !open);
@@ -171,7 +157,6 @@ function App() {
     setGamePhase(GAME_PHASES.SCENE);
   };
 
-  // Making an accusation—compute result
   // PUBLIC_INTERFACE
   const handleAccuse = (suspectId) => {
     const accused = suspects.find(s => s.id === suspectId);
@@ -188,7 +173,6 @@ function App() {
     setGamePhase(GAME_PHASES.ENDING);
   };
 
-  // Resets the whole game
   // PUBLIC_INTERFACE
   const restartGame = () => {
     setClues(initialClues.map(c => ({ ...c, found: false })));
@@ -201,7 +185,6 @@ function App() {
     setSceneAnimation({ type: "intro", playing: true });
   };
 
-  // Animation sequence transitions (intro, ending, etc.)
   const onAnimationComplete = () => {
     if (sceneAnimation.type === "intro") {
       setGamePhase(GAME_PHASES.SCENE);
@@ -213,161 +196,163 @@ function App() {
     }
   };
 
+  // --- Navigation layout state ---
+  // navTab: 0 = Scene, 1 = Clues, 2 = Suspects, 3 = Accuse
+  const [navTab, setNavTab] = useState(0);
+
+  // Keyboard navigation - sketch for A11y
+  useEffect(() => {
+    const handleShortcuts = e => {
+      if (e.altKey && !e.shiftKey) {
+        if (e.key === "1") setNavTab(0);
+        if (e.key === "2") setNavTab(1);
+        if (e.key === "3") setNavTab(2);
+        if (e.key === "4") setNavTab(3);
+      }
+    };
+    window.addEventListener("keydown", handleShortcuts);
+    return () => window.removeEventListener("keydown", handleShortcuts);
+  }, []);
+
   // --- Main rendering ---
   return (
-    <div className="App" style={{ background: "#fff", minHeight: "100vh" }}>
-      <GameHeader
-        clues={clues}
-        suspects={suspects}
-        onNotebook={toggleNotebook}
-        onAccusation={openAccusation}
-        phase={gamePhase}
-      />
-
-      {/* Animated intro, reveal, ending */}
-      {(gamePhase === GAME_PHASES.INTRO && sceneAnimation.playing) && (
-        <AnimatedScene
-          type="intro"
-          onDone={onAnimationComplete}
-        />
-      )}
-
-      {/* Main crime scene */}
-      {(gamePhase === GAME_PHASES.SCENE || gamePhase === GAME_PHASES.NOTEBOOK || gamePhase === GAME_PHASES.ACCUSATION) && (
-        <div className="main-game-area" style={{
-          display: "flex", flexDirection: "row",
-          justifyContent: "space-between",
-          margin: "0 auto",
-          maxWidth: 1120, minHeight: 550, position: "relative"
-        }}>
-          {/* Cartoon Crime Scene */}
-          <section style={{
-            flex: 2,
-            background: "#E7F3FC",
-            borderRadius: 18,
-            position: "relative",
-            margin: 14,
-            minHeight: 400,
-            boxShadow: "0 2px 16px #aed4ff42"
-          }}>
-            <CrimeScene
-              clues={clues}
-              onClueFound={onClueFound}
-              sceneComplete={clues.filter(c => c.found && !c.redHerring).length === initialClues.filter(c => !c.redHerring).length}
-            />
-          </section>
-          {/* Side panel: Notebook or Suspect list */}
-          <aside style={{
-            flex: 1, minWidth: 320, maxWidth: 340,
-            margin: 14,
-            borderRadius: 18,
-            background: "#fff8f1",
-            boxShadow: "0 2px 12px #efd29a35"
-          }}>
-            {notebookOpen ?
-              <ClueNotebook
-                clues={clues}
-                suspects={suspects}
-                onSuspectClick={startInterrogation}
-                selectedClueId={null}
-              /> :
-              <SuspectPanel
-                suspects={suspects}
-                onSuspect={startInterrogation}
-              />}
-          </aside>
-        </div>
-      )}
-
-      {/* Accusation system */}
-      {accusationOpen && (
-        <AccusationPanel
-          suspects={suspects}
-          onAccuse={handleAccuse}
-          onCancel={closeAccusation}
-        />
-      )}
-
-      {/* Interrogation chat modal */}
-      {(gamePhase === GAME_PHASES.INTERROGATION && selectedSuspect) && (
-        <InterrogationModal
-          suspect={suspects.find(s => s.id === selectedSuspect)}
-          clues={clues}
-          onClose={endInterrogation}
-        />
-      )}
-
-      {/* Animated ending + feedback */}
-      {(gamePhase === GAME_PHASES.ENDING && ending) && (
-        <AnimatedScene
-          type="ending"
-          ending={ending}
-          suspect={ending.suspect}
-          onDone={onAnimationComplete}
-        />
-      )}
-
-      {/* End game modal */}
-      {showGameOver && (
-        <GameOverModal
-          ending={ending}
-          onRestart={restartGame}
-        />
-      )}
-
-      {/* Mobile floating notebook/suspect toggle */}
-      <div className="mobile-game-toggle-bar" style={{
-        position: "fixed",
-        left: 10, right: 10,
-        bottom: 14,
-        display: "flex",
-        justifyContent: "center",
-        zIndex: 100
-      }}>
+    <div className="App">
+      {/* Persistent navigation sidebar (vertical desktop, horizontal mobile) */}
+      <nav className="noir-sidebar" aria-label="Primary">
         <button
-          className="cartoon-btn"
-          style={{
-            background: THEME_COLORS.primary,
-            color: "#fff",
-            borderRadius: 12,
-            margin: "0 8px",
-            fontWeight: "bold",
-            fontSize: 18,
-            boxShadow: "0 1px 6px #0002",
-            padding: "8px 18px",
-            letterSpacing: 0.5
-          }}
-          onClick={toggleNotebook}
+          className={`noir-nav-btn${navTab === 0 ? " selected" : ""}`}
+          aria-label="Crime Scene"
+          onClick={() => { setNavTab(0); setGamePhase(GAME_PHASES.SCENE); }}
         >
-          {notebookOpen ? "Show Suspects" : "Notebook/Clues"}
+          <span className="noir-icon" aria-hidden="true">🕵️</span>
+          <span style={{ fontSize: 13, marginTop: 2 }}>Scene</span>
         </button>
         <button
-          className="cartoon-btn"
-          style={{
-            background: THEME_COLORS.accent,
-            color: "#fff",
-            borderRadius: 12,
-            margin: "0 8px",
-            fontWeight: "bold",
-            fontSize: 18,
-            boxShadow: "0 1px 6px #0002",
-            padding: "8px 18px"
-          }}
-          onClick={openAccusation}
-        >Accuse!</button>
-      </div>
-
-      {/* Freepik visual asset sample showcase (at footer for integration demonstration) */}
-      <div style={{
-        width: "100%",
-        margin: "0 auto",
-        maxWidth: 680,
-        background: "#f5fafd",
-        borderRadius: 16,
-        marginBottom: 14,
-        boxShadow: "0 1px 8px #b9e0ff2e"
-      }}>
-        <FreepikMysteryImages />
+          className={`noir-nav-btn${navTab === 1 ? " selected" : ""}`}
+          aria-label="Clue Board"
+          onClick={() => { setNavTab(1); setGamePhase(GAME_PHASES.NOTEBOOK); setNotebookOpen(true); }}
+        >
+          <span className="noir-icon" aria-hidden="true">📝</span>
+          <span style={{ fontSize: 13, marginTop: 2 }}>Clues</span>
+        </button>
+        <button
+          className={`noir-nav-btn${navTab === 2 ? " selected" : ""}`}
+          aria-label="Suspects"
+          onClick={() => { setNavTab(2); setGamePhase(GAME_PHASES.SCENE); setNotebookOpen(false); }}
+        >
+          <span className="noir-icon" aria-hidden="true">🕴️</span>
+          <span style={{ fontSize: 13, marginTop: 2 }}>Suspects</span>
+        </button>
+        <button
+          className={`noir-nav-btn${navTab === 3 ? " selected" : ""}`}
+          aria-label="Accuse"
+          onClick={() => { setNavTab(3); openAccusation(); }}
+        >
+          <span className="noir-icon" aria-hidden="true" style={{ fontWeight: "bold" }}>⚡</span>
+          <span style={{ fontSize: 13, marginTop: 2 }}>Accuse</span>
+        </button>
+      </nav>
+      {/* Content wrapper */}
+      <div className="noir-content-frame">
+        {/* Noir header/topbar */}
+        <header className="noir-header" role="banner">
+          <div className="noir-header-brand">
+            {/* Placeholder icon - replace with SVG silhouette later */}
+            <span style={{
+              fontWeight: 700, color: "var(--accent)",
+              display: "inline-block", fontSize: 28, letterSpacing: "0.06em"
+            }}>LRM</span>
+            <span style={{
+              color: "var(--text-main)", fontWeight: 700, letterSpacing: "0.02em", fontSize: 21
+            }}>
+              Locked Room Mystery
+            </span>
+          </div>
+          {/* Game status/CTA */}
+          <div className="noir-header-status" aria-live="polite">
+            Clues: <b>{clues.filter(c => c.found && !c.redHerring).length} / {clues.filter(c => !c.redHerring).length}</b>
+            <button
+              className="noir-btn"
+              style={{ marginLeft: 28 }}
+              onClick={toggleNotebook}
+              aria-label={notebookOpen ? "Hide Clue Board" : "Show Clue Board"}
+            >{notebookOpen ? "Hide Clues" : "Clue Board"}</button>
+            <button
+              className="noir-btn-primary"
+              style={{ marginLeft: 6 }}
+              onClick={openAccusation}
+              aria-label="Accuse a suspect"
+            >Accuse</button>
+          </div>
+        </header>
+        {/* Animated intro/ending overlays */}
+        {(gamePhase === GAME_PHASES.INTRO && sceneAnimation.playing) && (
+          <AnimatedScene type="intro" onDone={onAnimationComplete} />
+        )}
+        {(gamePhase === GAME_PHASES.ENDING && ending) && (
+          <AnimatedScene type="ending" ending={ending} suspect={ending.suspect} onDone={onAnimationComplete} />
+        )}
+        {/* Modals */}
+        {accusationOpen && (
+          <AccusationPanel
+            suspects={suspects}
+            onAccuse={handleAccuse}
+            onCancel={closeAccusation}
+          />
+        )}
+        {(gamePhase === GAME_PHASES.INTERROGATION && selectedSuspect) && (
+          <InterrogationModal
+            suspect={suspects.find(s => s.id === selectedSuspect)}
+            clues={clues}
+            onClose={endInterrogation}
+          />
+        )}
+        {/* Main game area */}
+        {(gamePhase !== GAME_PHASES.INTRO && !sceneAnimation.playing) && (
+          <main className="noir-main-area" role="main">
+            {/* Scene on left, notebook/suspect drawer on right */}
+            <section className="noir-board">
+              <CrimeScene
+                clues={clues}
+                onClueFound={onClueFound}
+                sceneComplete={
+                  clues.filter(c => c.found && !c.redHerring).length === initialClues.filter(c => !c.redHerring).length
+                }
+              />
+            </section>
+            <aside className="noir-drawer-panel" aria-label={notebookOpen ? "Clue Board" : "Suspect List"}>
+              {notebookOpen ? (
+                <ClueNotebook
+                  clues={clues}
+                  suspects={suspects}
+                  onSuspectClick={startInterrogation}
+                  selectedClueId={null}
+                />
+              ) : (
+                <SuspectPanel
+                  suspects={suspects}
+                  onSuspect={startInterrogation}
+                />
+              )}
+            </aside>
+          </main>
+        )}
+        {/* End game modal */}
+        {showGameOver && (
+          <GameOverModal
+            ending={ending}
+            onRestart={restartGame}
+          />
+        )}
+        {/* Noir: Snackbars/feedback region for future accessibility */}
+        {/* Visual asset showcase (footer — for demonstration/polish only) */}
+        <div style={{
+          width: "100%", maxWidth: 690, margin: "0 auto",
+          marginBottom: 14, background: "rgba(30,33,44,0.84)",
+          borderRadius: 17, boxShadow: "0 1px 9px #0511451b"
+        }}>
+          <FreepikMysteryImages />
+        </div>
       </div>
     </div>
   );
