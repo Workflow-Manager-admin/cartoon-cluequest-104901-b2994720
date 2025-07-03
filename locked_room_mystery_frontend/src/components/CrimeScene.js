@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { fetchCrimeSceneIllustration } from "../freepikService";
+import React, { useState, useEffect, useRef } from "react";
+import { fetchCrimeSceneIllustrations } from "../freepikService";
 
 /**
  * PUBLIC_INTERFACE
- * CrimeScene - Cartoon-styled crime scene with clickable, animated clue hotspots.
+ * CrimeScene - Cartoon-styled crime scene with clickable, animated clue hotspots and advanced image carousel fallback.
+ * Shows multiple visually relevant Freepik images with carousel/fallback logic.
  * Props:
  *   clues: Array of clue objects
  *   onClueFound: function(clueId) to mark clue as found
@@ -11,26 +12,29 @@ import { fetchCrimeSceneIllustration } from "../freepikService";
  */
 function CrimeScene({ clues, onClueFound, sceneComplete }) {
   const [puzzleClue, setPuzzleClue] = useState(null);
-  const [sceneImg, setSceneImg] = useState(null);
+  const [sceneImgs, setSceneImgs] = useState([]);
+  const [sceneIdx, setSceneIdx] = useState(0);
   const [sceneLoading, setSceneLoading] = useState(true);
   const [sceneErr, setSceneErr] = useState(null);
 
-  // Fetch the main crime scene illustration on mount only
+  // Fetch multiple crime scene illustrations (carousel/fallback style)
   useEffect(() => {
     let isMounted = true;
     setSceneLoading(true);
-    fetchCrimeSceneIllustration()
-      .then(({ image }) => {
+    setSceneErr(null);
+    fetchCrimeSceneIllustrations(4)
+      .then(({ images }) => {
         if (isMounted) {
-          setSceneImg(image);
+          setSceneImgs(images || []);
+          setSceneIdx(0);
           setSceneLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
-          setSceneImg(null);
+          setSceneImgs([]);
           setSceneLoading(false);
-          setSceneErr("Couldn't load crime scene illustration.");
+          setSceneErr("Couldn't load crime scene illustrations.");
         }
       });
     return () => { isMounted = false; };
@@ -58,17 +62,42 @@ function CrimeScene({ clues, onClueFound, sceneComplete }) {
   // Close puzzle modal
   const onPuzzleClose = () => setPuzzleClue(null);
 
-  // Responsive demo "scene" cartoon or loading/fallback/err
+  // Keyboard navigation for carousel (left/right arrows)
+  const containerRef = useRef(null);
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (document.activeElement !== containerRef.current) return;
+      if (sceneImgs.length > 1) {
+        if (e.key === "ArrowLeft") {
+          setSceneIdx((idx) => (idx <= 0 ? sceneImgs.length - 1 : idx - 1));
+        }
+        if (e.key === "ArrowRight") {
+          setSceneIdx((idx) => (idx >= sceneImgs.length - 1 ? 0 : idx + 1));
+        }
+      }
+    };
+    containerRef.current?.addEventListener("keydown", handleKey);
+    return () => containerRef.current?.removeEventListener("keydown", handleKey);
+    // eslint-disable-next-line
+  }, [sceneImgs, sceneIdx]);
+
+  // Responsive "scene" main area: loading/fallback/error handled
   return (
-    <div style={{
-      position: "relative",
-      width: "100%",
-      height: 440,
-      background: "linear-gradient(180deg,#a7c8f9 65%,#fff2e5 100%)",
-      borderRadius: 14,
-      overflow: "hidden"
-    }}>
-      {/* Background illustration */}
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      aria-label="Crime Scene Illustration Area"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: 440,
+        background: "linear-gradient(180deg,#a7c8f9 65%,#fff2e5 100%)",
+        borderRadius: 14,
+        overflow: "hidden",
+        outline: "none"
+      }}
+    >
+      {/* Background illustration: Loading/error/fallback */}
       {sceneLoading && (
         <div
           style={{
@@ -81,7 +110,8 @@ function CrimeScene({ clues, onClueFound, sceneComplete }) {
             position: "absolute",
             zIndex: 1,
             fontSize: 22,
-            color: "#4960a1"
+            color: "#4960a1",
+            fontWeight: 600
           }}
         >
           Loading crime scene illustration...
@@ -106,20 +136,121 @@ function CrimeScene({ clues, onClueFound, sceneComplete }) {
           {sceneErr}
         </div>
       )}
-      {sceneImg && (
-        <img
-          src={sceneImg.url || sceneImg.thumbnail}
-          alt={sceneImg.title || "Detective cartoon crime scene"}
-          style={{
-            objectFit: "cover",
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0, left: 0,
-            zIndex: 1
-          }}
-          draggable={false}
-        />
+      {/* Carousel: highly filtered images; always at least one fallback */}
+      {sceneImgs && sceneImgs.length > 0 && (
+        <>
+          <img
+            src={sceneImgs[sceneIdx].url || sceneImgs[sceneIdx].thumbnail}
+            alt={sceneImgs[sceneIdx].title || "Detective cartoon crime scene"}
+            style={{
+              objectFit: "cover",
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: 0, left: 0,
+              zIndex: 1,
+              transition: "opacity .33s"
+            }}
+            draggable={false}
+          />
+          {/* Carousel controls if multiple options */}
+          {sceneImgs.length > 1 && (
+            <>
+              <button
+                className="scene-carousel-btn"
+                aria-label="Previous scene image"
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: 9,
+                  transform: "translateY(-50%)",
+                  zIndex: 4,
+                  background: "rgba(21,22,29,0.84)",
+                  border: "none",
+                  borderRadius: "50%",
+                  color: "var(--accent)",
+                  fontWeight: "bold",
+                  fontSize: 25,
+                  width: 38, height: 38,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 1px 3px #222b",
+                  cursor: "pointer",
+                  opacity: 0.83,
+                  transition: "background .18s, color .13s"
+                }}
+                onClick={() =>
+                  setSceneIdx(idx => (idx <= 0 ? sceneImgs.length - 1 : idx - 1))
+                }
+                tabIndex={0}
+              >
+                {"‹"}
+              </button>
+              <button
+                className="scene-carousel-btn"
+                aria-label="Next scene image"
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: 9,
+                  transform: "translateY(-50%)",
+                  zIndex: 4,
+                  background: "rgba(21,22,29,0.84)",
+                  border: "none",
+                  borderRadius: "50%",
+                  color: "var(--accent)",
+                  fontWeight: "bold",
+                  fontSize: 26,
+                  width: 38, height: 38,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 1px 3px #222b",
+                  cursor: "pointer",
+                  opacity: 0.83,
+                  transition: "background .18s, color .13s"
+                }}
+                onClick={() =>
+                  setSceneIdx(idx => (idx >= sceneImgs.length - 1 ? 0 : idx + 1))
+                }
+                tabIndex={0}
+              >
+                {"›"}
+              </button>
+              {/* Dot indicators */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 10,
+                  left: 0,
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 8,
+                  zIndex: 5
+                }}
+              >
+                {sceneImgs.map((img, i) => (
+                  <span
+                    key={img.id}
+                    aria-label={
+                      sceneIdx === i ? "Current scene illustration" : undefined
+                    }
+                    style={{
+                      width: sceneIdx === i ? 17 : 8,
+                      height: 8,
+                      background: sceneIdx === i ? "var(--accent)" : "#fff6",
+                      borderRadius: 8,
+                      boxShadow: sceneIdx === i ? "0 1px 5px #7b91fe55" : undefined,
+                      transition: "all .15s",
+                      outline:
+                        sceneIdx === i
+                          ? "2px solid var(--accent)"
+                          : "1.2px solid #ddd7"
+                    }}
+                  ></span>
+                ))}
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {/* Overlay clue hotspots */}
