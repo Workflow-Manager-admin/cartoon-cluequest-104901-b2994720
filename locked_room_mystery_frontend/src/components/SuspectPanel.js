@@ -18,6 +18,8 @@ function SuspectPanel({ suspects, onSuspect }) {
           <li
             key={s.id}
             className="noir-dossier-card"
+            tabIndex={0}
+            aria-label={`Dossier for ${s.name} (${s.emotion})`}
             style={{
               marginBottom: 15,
               display: "flex",
@@ -26,7 +28,8 @@ function SuspectPanel({ suspects, onSuspect }) {
               background: "rgba(28,32,39,0.97)",
               borderRadius: "var(--radius)",
               border: "var(--border-med)",
-              boxShadow: "0 2px 11px #15193018"
+              boxShadow: "0 2px 11px #15193018",
+              transition: "box-shadow var(--transition), border-color var(--transition)"
             }}
           >
             <span
@@ -62,6 +65,7 @@ function SuspectPanel({ suspects, onSuspect }) {
             </div>
             <button
               className="noir-btn"
+              aria-label={`Interrogate ${s.name}`}
               style={{
                 background: "var(--accent)",
                 color: "#fff",
@@ -72,9 +76,11 @@ function SuspectPanel({ suspects, onSuspect }) {
                 fontSize: 15,
                 cursor: "pointer",
                 marginLeft: 3,
-                boxShadow: "0 1px 7px #7b91fe1d"
+                boxShadow: "0 1px 7px #7b91fe1d",
+                transition: "background var(--transition), color var(--transition), box-shadow var(--transition)"
               }}
               onClick={() => onSuspect(s.id)}
+              tabIndex={0}
             >
               Interrogate
             </button>

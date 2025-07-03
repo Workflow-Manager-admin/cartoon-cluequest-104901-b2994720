@@ -9,9 +9,13 @@ import React from "react";
  *   onSuspectClick: fn(suspectId)
  */
 function ClueNotebook({ clues, suspects, onSuspectClick }) {
+  // Accessibility: Detect focus for tab highlight on suspect links
+  // No state required due to visible focus using outline from CSS
   return (
     <div
       className="noir-dossier-card"
+      role="region"
+      aria-label="Clue Notebook, evidence cards"
       style={{
         padding: "19px 12px 14px 19px",
         minHeight: 330,
@@ -21,6 +25,7 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
         border: "var(--border-med)",
         boxShadow: "0 1px 8px #1e28481a"
       }}
+      tabIndex={0}
     >
       <h2 className="noir-title" style={{ marginBottom: 7 }}>Evidence Board</h2>
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
@@ -35,6 +40,7 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
               borderRadius: 9,
               boxShadow: "0 1px 5px #314ceb31"
             }}
+            aria-label={`Clue: ${clue.name}${clue.redHerring ? " (Red Herring)" : ""}`}
           >
             <span style={{ fontWeight: 700, color: "var(--accent)", fontSize: 16 }}>{clue.name}</span>
             <span style={{ color: "var(--danger)", marginLeft: 10, fontStyle: "italic", fontWeight: 600 }}>
@@ -53,6 +59,7 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
                     key={s.id}
                     onClick={() => onSuspectClick(s.id)}
                     className="noir-btn"
+                    aria-label={`View dossier for ${s.name}`}
                     style={{
                       background: "var(--accent)",
                       color: "#fff",
@@ -62,7 +69,8 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
                       fontWeight: 700,
                       fontSize: 15,
                       padding: "4px 13px",
-                      cursor: "pointer"
+                      cursor: "pointer",
+                      transition: "background var(--transition), color var(--transition)",
                     }}
                   >
                     <span className="noir-avatar-initials" style={{

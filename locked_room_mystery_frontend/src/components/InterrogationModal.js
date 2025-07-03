@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 /**
  * PUBLIC_INTERFACE
  * InterrogationModal - Noir glass-style modal, initials avatar, accessible, no emoji.
+ * Accessibility: Focus management, Escape/Enter keys, ARIA modal, subtle transition.
  * Props:
  *   suspect: Object (current suspect)
  *   clues: Array (clues)
@@ -11,6 +12,7 @@ import React, { useState } from "react";
 function InterrogationModal({ suspect, clues, onClose }) {
   const [stage, setStage] = useState(0);
   const [emotion, setEmotion] = useState(suspect.emotion);
+  const modalRef = useRef(null);
 
   // Simulate branching on response
   const handleResponse = (resp) => {
@@ -27,6 +29,24 @@ function InterrogationModal({ suspect, clues, onClose }) {
     }
   };
 
+  useEffect(() => {
+    // Focus first actionable (close) in modal
+    if (modalRef.current) {
+      const firstButton = modalRef.current.querySelector("button, [tabindex]:not([tabindex='-1'])");
+      firstButton && firstButton.focus();
+    }
+  }, []);
+
+  // Trap Escape for closing, Enter for default (Where were you)
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+    if (e.key === "Enter") {
+      handleResponse("alibi");
+    }
+  };
+
   return (
     <div
       className="noir-modal-bg"
@@ -34,7 +54,9 @@ function InterrogationModal({ suspect, clues, onClose }) {
       aria-modal="true"
       aria-labelledby="interrogation-title"
       tabIndex={-1}
-      style={{ zIndex: 1998 }}
+      style={{ zIndex: 1998, transition: "opacity 0.18s" }}
+      onKeyDown={handleKeyDown}
+      ref={modalRef}
     >
       <div
         className="noir-modal"
@@ -45,6 +67,7 @@ function InterrogationModal({ suspect, clues, onClose }) {
           background: "var(--surface-bg)",
           borderRadius: "var(--radius-large)",
           boxShadow: "var(--shadow-modal)",
+          transition: "box-shadow var(--transition), background var(--transition)"
         }}
       >
         <button
@@ -59,8 +82,11 @@ function InterrogationModal({ suspect, clues, onClose }) {
             color: "var(--danger)",
             width: 34, height: 34,
             fontWeight: 700,
-            cursor: "pointer"
+            cursor: "pointer",
+            outline: "none",
+            transition: "background var(--transition), color var(--transition)"
           }}
+          tabIndex={0}
         >✕</button>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 7 }}>
           <span
@@ -111,6 +137,7 @@ function InterrogationModal({ suspect, clues, onClose }) {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <button
             className="noir-btn"
+            aria-label="Ask for alibi"
             style={{
               background: "var(--accent)",
               color: "#fff",
@@ -119,14 +146,17 @@ function InterrogationModal({ suspect, clues, onClose }) {
               fontWeight: 700,
               padding: "6px 18px",
               fontSize: 15,
-              cursor: "pointer"
+              cursor: "pointer",
+              transition: "background var(--transition), color var(--transition)"
             }}
             onClick={() => handleResponse("alibi")}
+            tabIndex={0}
           >
             Where were you?
           </button>
           <button
             className="noir-btn"
+            aria-label="Ask about motive"
             style={{
               background: "var(--danger)",
               color: "#fff",
@@ -135,9 +165,11 @@ function InterrogationModal({ suspect, clues, onClose }) {
               fontWeight: 700,
               padding: "6px 18px",
               fontSize: 15,
-              cursor: "pointer"
+              cursor: "pointer",
+              transition: "background var(--transition), color var(--transition)"
             }}
             onClick={() => handleResponse("motive")}
+            tabIndex={0}
           >
             Motive?
           </button>
@@ -151,9 +183,12 @@ function InterrogationModal({ suspect, clues, onClose }) {
               fontWeight: 600,
               padding: "6px 13px",
               fontSize: 15,
-              cursor: "pointer"
+              cursor: "pointer",
+              transition: "background var(--transition), color var(--transition)"
             }}
             onClick={onClose}
+            tabIndex={0}
+            aria-label="End interrogation"
           >
             Leave
           </button>

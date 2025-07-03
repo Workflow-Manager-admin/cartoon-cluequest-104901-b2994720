@@ -15,8 +15,44 @@ function GameOverModal({ ending, onRestart }) {
       ? "Unsolved..."
       : "Mistaken Accusation!";
 
+  // Keyboard a11y: Escape to close, Enter to restart
+  const modalRef = React.useRef(null);
+  React.useEffect(() => {
+    if (modalRef.current) {
+      // Focus Play Again button for ease of restart/key accessibility
+      const playBtn = modalRef.current.querySelector("button");
+      playBtn && playBtn.focus();
+    }
+  }, []);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      onRestart();
+    }
+    if (e.key === "Escape") {
+      onRestart();
+    }
+  };
+
+  // Reduce motion for accessibility if prefers-reduced-motion
+  const reducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   return (
-    <div className="noir-modal-bg" role="dialog" aria-modal="true" tabIndex={-1} style={{ zIndex: 2200 }}>
+    <div
+      className="noir-modal-bg"
+      role="dialog"
+      aria-modal="true"
+      tabIndex={-1}
+      style={{
+        zIndex: 2200,
+        transition: reducedMotion ? undefined : "opacity 0.25s cubic-bezier(.66,-0.08,.56,1.13)"
+      }}
+      onKeyDown={handleKeyDown}
+      ref={modalRef}
+    >
       <div
         className="noir-modal"
         style={{
@@ -25,6 +61,7 @@ function GameOverModal({ ending, onRestart }) {
           borderRadius: "var(--radius-large)",
           boxShadow: "var(--shadow-modal)",
           textAlign: "center",
+          transition: reducedMotion ? undefined : "box-shadow var(--transition), background var(--transition)"
         }}
       >
         <div className="noir-modal-titlebar" style={{
@@ -80,8 +117,10 @@ function GameOverModal({ ending, onRestart }) {
             padding: "10px 28px",
             cursor: "pointer",
             boxShadow: "0 1px 12px #7b91fe21",
-            transition: "background .13s"
+            transition: reducedMotion ? undefined : "background .13s, box-shadow var(--transition)"
           }}
+          aria-label="Restart game"
+          tabIndex={0}
         >
           Play Again
         </button>
