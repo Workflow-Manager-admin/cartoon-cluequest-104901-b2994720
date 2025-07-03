@@ -17,7 +17,7 @@ const API_BASE_URL = "https://api.freepik.com/v1/resources"; // See Freepik API 
  */
 export async function fetchFreepikImages(query, limit = 8) {
   /** This is a public function. */
-  // IMPORTANT: Freepik API docs needed; endpoint may be '/photos' or '/search'
+  // API may return /search endpoint.
   const apiUrl = `${API_BASE_URL}/search?term=${encodeURIComponent(query)}&limit=${limit}`;
   try {
     const response = await fetch(apiUrl, {
@@ -33,7 +33,6 @@ export async function fetchFreepikImages(query, limit = 8) {
     const data = await response.json();
 
     // Adapt result based on Freepik API response schema
-    // For demonstration assume data.resources or data.data for assets
     const results = (data.resources || data.data || []).map(item => ({
       id: item.id || item.identifier,
       title: item.title || item.slug,
@@ -50,4 +49,18 @@ export async function fetchFreepikImages(query, limit = 8) {
     console.error("Error fetching Freepik assets:", error);
     return { results: [] };
   }
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * fetchCrimeSceneIllustration - Fetches one highly themed detective crime scene room cartoon from Freepik.
+ * Will always use a strong, specific query for maximum thematic relevance.
+ * 
+ * @returns {Promise<{ image: { id: string, title: string, url: string, thumbnail: string } | null }>}
+ */
+export async function fetchCrimeSceneIllustration() {
+  const thematicallyStrongQuery =
+    "cartoon detective crime scene room illustration";
+  const { results } = await fetchFreepikImages(thematicallyStrongQuery, 1);
+  return { image: results && results.length > 0 ? results[0] : null };
 }

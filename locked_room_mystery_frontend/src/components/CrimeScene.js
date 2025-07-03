@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchCrimeSceneIllustration } from "../freepikService";
 
 /**
  * PUBLIC_INTERFACE
@@ -10,6 +11,30 @@ import React, { useState } from "react";
  */
 function CrimeScene({ clues, onClueFound, sceneComplete }) {
   const [puzzleClue, setPuzzleClue] = useState(null);
+  const [sceneImg, setSceneImg] = useState(null);
+  const [sceneLoading, setSceneLoading] = useState(true);
+  const [sceneErr, setSceneErr] = useState(null);
+
+  // Fetch the main crime scene illustration on mount only
+  useEffect(() => {
+    let isMounted = true;
+    setSceneLoading(true);
+    fetchCrimeSceneIllustration()
+      .then(({ image }) => {
+        if (isMounted) {
+          setSceneImg(image);
+          setSceneLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setSceneImg(null);
+          setSceneLoading(false);
+          setSceneErr("Couldn't load crime scene illustration.");
+        }
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   // Called when user clicks a clue hotspot
   const handleClueClick = (clue) => {
@@ -33,7 +58,7 @@ function CrimeScene({ clues, onClueFound, sceneComplete }) {
   // Close puzzle modal
   const onPuzzleClose = () => setPuzzleClue(null);
 
-  // Responsive demo "scene" cartoon
+  // Responsive demo "scene" cartoon or loading/fallback/err
   return (
     <div style={{
       position: "relative",
@@ -44,19 +69,58 @@ function CrimeScene({ clues, onClueFound, sceneComplete }) {
       overflow: "hidden"
     }}>
       {/* Background illustration */}
-      <img
-        src="https://img.freepik.com/free-vector/cartoon-crime-mansion-room_1308-158964.jpg?w=700"
-        alt="Cartoon mansion crime scene"
-        style={{
-          objectFit: "cover",
-          width: "100%",
-          height: "100%",
-          position: "absolute",
-          top: 0, left: 0,
-          zIndex: 1
-        }}
-        draggable={false}
-      />
+      {sceneLoading && (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "#e0ebf7",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "absolute",
+            zIndex: 1,
+            fontSize: 22,
+            color: "#4960a1"
+          }}
+        >
+          Loading crime scene illustration...
+        </div>
+      )}
+      {sceneErr && !sceneLoading && (
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            background: "#ffd3d3",
+            color: "#a13636",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1,
+            fontSize: 18
+          }}
+        >
+          {sceneErr}
+        </div>
+      )}
+      {sceneImg && (
+        <img
+          src={sceneImg.url || sceneImg.thumbnail}
+          alt={sceneImg.title || "Detective cartoon crime scene"}
+          style={{
+            objectFit: "cover",
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0, left: 0,
+            zIndex: 1
+          }}
+          draggable={false}
+        />
+      )}
 
       {/* Overlay clue hotspots */}
       {clues.map(clue => (
