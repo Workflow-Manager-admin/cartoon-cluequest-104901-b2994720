@@ -32,6 +32,7 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
         {clues.filter(clue => clue.found).map(clue => (
           <li
             key={clue.id}
+            className="evidence-entry-animate"
             style={{
               margin: "15px 0",
               background: clue.redHerring
@@ -43,10 +44,10 @@ function ClueNotebook({ clues, suspects, onSuspectClick }) {
               padding: "13px 12px 7px 22px",
               borderRadius: 9,
               boxShadow: clue.redHerring
-                ? "0 1px 8px #fa435c26"
-                : "0 1px 5px #314ceb31",
+                ? "0 1px 10px #fa435c49"
+                : "0 1px 17px #355efb22",
               position: "relative",
-              transition: "background .13s, border-color .18s"
+              transition: "background .13s, border-color .18s, box-shadow .19s"
             }}
             aria-label={`Clue: ${clue.name}${clue.redHerring ? " (Red Herring)" : ""}`}
             tabIndex={0}

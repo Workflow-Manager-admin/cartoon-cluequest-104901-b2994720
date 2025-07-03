@@ -232,9 +232,16 @@ body {
   border-radius: var(--radius-large);
   margin: 0 13px 19px 0;
   min-height: 430px;
-  box-shadow: var(--shadow-med);
+  box-shadow: var(--shadow-med), 0 4px 38px #4e6e9a18;
   border: var(--border-med);
   overflow: hidden;
+  animation: noirPanelRaise .7s cubic-bezier(.66,-0.08,.66,1.13) 1;
+  will-change: box-shadow, transform;
+}
+@keyframes noirPanelRaise {
+  0% { opacity: 0; transform: scale(0.97) translateY(27px); box-shadow: none;}
+  60% { opacity: 1; transform: scale(1.02) translateY(-8px);}
+  100% { opacity: 1; transform: none;}
 }
 
 .noir-drawer-panel {
@@ -269,7 +276,22 @@ body {
   font-weight: 800;
   letter-spacing: 0.013em;
   margin-bottom: 2.5px;
-  text-shadow: 0 1.5px 4px #23284b13;
+  text-shadow: 0 1.5px 7px #6a72b626, 0 2.5px 12px #1b2e7691;
+  animation: noirTitleSlideIn .63s cubic-bezier(.73,-.11,.68,1.17) 1;
+}
+@keyframes noirTitleSlideIn {
+  from { opacity: 0; transform: translateX(24px) scale(0.95);}
+  55% { opacity: 1; transform: translateX(-6px) scale(1.05);}
+  to { opacity: 1; transform: none;}
+}
+/* Modern evidence/polished: animate new clues */
+.evidence-entry-animate {
+  animation: noirEntryPop .55s cubic-bezier(.75,.08,.52,1.2) 1;
+}
+@keyframes noirEntryPop {
+  from { opacity:0; transform:scale(0.93) translateY(19px);}
+  45% { opacity:0.7; transform:scale(1.06) translateY(-4px);}
+  to { opacity:1; transform:none;}
 }
 
 /* ---------- Modals ---------- */
@@ -295,21 +317,26 @@ body {
   border-radius: var(--radius-large);
   min-width: 312px;
   max-width: 454px;
-  box-shadow: 0 10px 75px #10182460, 0 1.5px 11px #1116;
+  box-shadow: 0 16px 68px #10182499, 0 2.5px 11px #1c1b2c33, 0 0.5px 14px #7b91fe18;
   border: var(--border-strong);
   color: var(--text-main);
   font-family: var(--font-ui);
   padding: 37px 28px 26px 28px;
   position: relative;
   transition: box-shadow 0.26s cubic-bezier(.77,-0.09,.66,1.11), background 0.23s;
-  animation: noirPopPanel .46s cubic-bezier(.85,-0.06,.58,1.08);
-  will-change: box-shadow, transform;
+  animation: noirPopPanel .46s cubic-bezier(.85,-0.06,.58,1.08), noirGlassFade .55s;
+  will-change: box-shadow, transform, filter;
   outline: none;
+  backdrop-filter: blur(10px) saturate(1.06);
 }
 @keyframes noirPopPanel {
-  0% { opacity:0; filter:blur(6px) brightness(0.88); transform:scale(0.88);}
-  50% { filter:none; opacity:0.94; }
+  0% { opacity:0; filter:blur(6px) brightness(0.88); transform:scale(0.94);}
+  50% { filter:none; opacity:0.96; }
   100% { opacity:1; filter:none; transform:none;}
+}
+@keyframes noirGlassFade {
+  from { box-shadow: none; filter: blur(8px) brightness(0.8);}
+  to   { box-shadow: 0 16px 68px #10182499, 0 2.5px 11px #1c1b2c33, 0 0.5px 14px #7b91fe18; filter:none;}
 }
 .noir-modal-titlebar {
   font-weight: 800;
@@ -317,9 +344,11 @@ body {
   font-size: var(--title-3);
   color: var(--accent);
   margin-bottom: 16px;
-  text-shadow: 0 1.5px 7px #13214c13;
-  opacity: 0.93;
-  letter-spacing: 0.04em;
+  text-shadow: 0 1.5px 8px #24287e31;
+  opacity: 0.98;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid #27317130;
+  padding-bottom: 8px;
   animation: noirModalTitleFade .48s;
 }
 @keyframes noirModalTitleFade {
@@ -442,6 +471,24 @@ body {
   100% { transform: none; opacity: 1;}
 }
 
+/* --- Modern live marker for clue hotspots --- */
+.clue-hotspot {
+  animation: cluePulse 1.35s cubic-bezier(.7,.24,.4,1.15) infinite alternate;
+  box-shadow: 0 2px 16px #e8d44d23, 0 0 0 0 #faea6b85;
+  transition: box-shadow .18s, background .19s, outline .13s;
+}
+.clue-hotspot:not([disabled]):hover, .clue-hotspot:not([disabled]):focus-visible {
+  box-shadow: 0 0 0 5px #faea6b92, 0 4px 22px #faaf002f;
+  background: #f6e797cc;
+  animation-play-state: paused;
+  z-index: 6;
+}
+@keyframes cluePulse {
+  0% { box-shadow: 0 2px 12px #e8d44d36, 0 0 0 0 #faea6b44;}
+  70% { box-shadow: 0 0 0 8px #faea6b11, 0 0 0 0 #faea6b22;}
+  100% { box-shadow: 0 0 0 0 #faea6b00;}
+}
+
 /* Used for accessibility live region */
 [aria-live][aria-atomic="true"] {
   position: absolute !important;
@@ -543,4 +590,18 @@ button[disabled], .noir-btn[disabled] {
   color: var(--danger);
   font-weight: 700;
   animation: noirBarDrop 0.51s;
+}
+
+/* Animated mood/emotional state fade-in for suspect interrogation */
+@keyframes noirMoodFadeIn {
+  from { opacity: 0; filter: blur(2px) brightness(0.87); transform: scale(1.18);}
+  78% { opacity: 1; }
+  to { opacity: 1; filter: none; transform: none;}
+}
+
+/* -- Suspect interrogation pulsing button -- */
+@keyframes suspectBtnPulse {
+  0% { box-shadow: 0 2px 9px #7b91fe18, 0 0 0 0 #7b91fe09;}
+  65% { box-shadow: 0 2px 13px #7b91fe37, 0 0 0 7px #7b91fe1f; }
+  100% { box-shadow: 0 2px 19px #7b91fe31, 0 0 0 0 #7b91fe11;}
 }

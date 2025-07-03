@@ -76,7 +76,8 @@ function SuspectPanel({ suspects, onSuspect }) {
                 fontSize: 15,
                 cursor: "pointer",
                 marginLeft: 3,
-                boxShadow: "0 1px 7px #7b91fe1d",
+                boxShadow: "0 2px 19px #7b91fe31, 0 0 0 0 #7b91fe11",
+                animation: "suspectBtnPulse 1.5s cubic-bezier(.54,.09,.49,1.23) infinite alternate",
                 transition: "background var(--transition), color var(--transition), box-shadow var(--transition)"
               }}
               onClick={() => onSuspect(s.id)}

@@ -111,15 +111,23 @@ function InterrogationModal({ suspect, clues, onClose }) {
           <span style={{ fontWeight: 700, fontSize: 21, color: "var(--accent)" }}>
             {suspect.name}
           </span>
-          <span style={{
-            marginLeft: 11,
-            color:
-              emotion === "nervous" ? "var(--danger)" :
-                (emotion === "calm" ? "var(--accent)" :
-                  (emotion === "defensive" ? "#cda518" : "#4ecc90")),
-            fontWeight: 600,
-            fontSize: 15
-          }}>
+          <span
+            style={{
+              marginLeft: 11,
+              color:
+                emotion === "nervous"
+                  ? "var(--danger)"
+                  : emotion === "calm"
+                  ? "var(--accent)"
+                  : emotion === "defensive"
+                  ? "#cda518"
+                  : "#4ecc90",
+              fontWeight: 600,
+              fontSize: 15,
+              transition: "color .17s",
+              animation: "noirMoodFadeIn 0.53s cubic-bezier(.38,.91,.61,.98) 1"
+            }}
+          >
             {emotion}
           </span>
         </div>
